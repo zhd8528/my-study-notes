@@ -1,4 +1,4 @@
-# 系统设计 Spring
+# 系统设计 - Spring
 
 ## 核心内容
 
@@ -20,7 +20,7 @@
 
 **控制反转**：
 
-> 把对象创建交给 Spirng 容器，降低耦合
+> 将对象的创建、组装、管理权交给 Spring 容器，由容器控制对象的生命周期，而不是由代码主动 new，从而降低耦合
 
 **DI 依赖注入**：
 
@@ -48,9 +48,16 @@
 8. 使用
 9. 销毁
 
+**简化记忆**：
+
+1. **实例化（new 对象）**
+2. **属性填充（依赖注入）**
+3. **初始化（Aware -> BeanPostProcessor 前置 -> init -> BeanPostProcessor 后置）**
+4. **销毁**
+
 ---
 
-## 4. Spirng 事务失效场景
+## 4. Spring 事务失效场景
 
 1. 非 public 方法
 2. 自调用（同类方法无代理）
@@ -69,11 +76,19 @@
 
 > JDK 提供，优先按名称注入
 
+| 对比项   | @Autowired                                     | @Resource                          |
+| -------- | ---------------------------------------------- | ---------------------------------- |
+| 提供方   | Spring                                         | JDK（javax.annotation）            |
+| 注入方式 | 默认按类型（type），可配合 `@Qualifier` 按名称 | 默认按名称（name），找不到再按类型 |
+| 适用范围 | 构造器、方法、参数、字段                       | 方法、字段                         |
+| 是否必须 | `required=true` （默认，找不到抛异常）         | 找不到则按类型匹配，仍找不到抛异常 |
+| 空值处理 | 可设置 `required=false`                        | 无直接等效配置                     |
+
 ---
 
-## 6. SpringBoot 自动配置原理
+## 6. Spring Boot 自动配置原理
 
-- @SpringBootApplication 组合了 @EnableAutoConfiguration
+- @Spring BootApplication 组合了 @EnableAutoConfiguration
 - 从 META-INF/spring.factories 加载自动配置类
 - 按 @Conditional 条件注解决定是否失效
 
@@ -105,6 +120,21 @@
 >
 > 注意：仅支持单列模式，构造器注入无法解决
 
+**三级缓存解决循环依赖**：
+
+| 级别 | 缓存名称                | 存储内容                            | 作用                    |
+| ---- | ----------------------- | ----------------------------------- | ----------------------- |
+| 一级 | `singletonObjects`      | 完全初始化好的 Bean                 | 直接使用                |
+| 二级 | `earlySingletonObjects` | 提前暴露的半成品 Bean（未填充属性） | 提前暴露引用            |
+| 三级 | `singletonFactories`    | `ObjectFactory`（用于生成代理对象） | 解决 AOP 代理的循环依赖 |
+
+**流程**：
+
+1. A 创建时，将 A 的 `ObjectFactory` 放入三级缓存
+2. A 发现依赖 B，去创建 B
+3. B 发现依赖 A，从三级缓存拿到 `ObjectFactory` 创建 A 的代理（或原始对象），放入二级缓存
+4. B 完成初始化，A 继续完成初始化
+
 ---
 
 ### 2. AOP 细节补充
@@ -123,7 +153,7 @@
 
 **Spring Boot 2.x 默认代理？**
 
-> 默认使用 CGLIB（因为 SpringBoot 中常用 @Transactional 在类上，且不强制要求接口）
+> 默认使用 CGLIB（因为 Spring Boot 中常用 @Transactional 在类上，且不强制要求接口）
 
 ---
 
@@ -169,6 +199,10 @@
 
 > 比如用 PlatformTransactionMangerBean，事务注解无效
 
+**数据库引擎不支持事务**（如 MyISAM）：
+
+> 事务注解不会报错，但不会生效
+
 **补充**：
 
 > @Transactinal 的 rollbackFor 属性默认只对 RuntimeException 和 Error 回滚，检查型异常（IOException）不回滚，需指定 rollbackFor = Exception.class
@@ -191,9 +225,13 @@
 
 ---
 
-### 6. SpringBoot 自动配置原理补充
+### 6. Spring Boot 自动配置原理补充
 
-> SpringBoot 2.7 + 已改用 META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+**❗️版本变化**：
+
+- **Spring Boot 2.7 之前**：`META-INF/spring.factories`
+
+- **Spring Boot 2.7 +**：`META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
 
 **补充**：
 
@@ -204,6 +242,20 @@
 > 自动配置如何覆盖：
 >
 > 用户自定义的 Bean 会覆盖自动配置中的默认 Bean
+
+### 7. 补充Spring Boot 和 Spring 的 关系
+
+**Spring Boot VS Spring**：
+
+| 特性     | Spring                     | Spring Boot                    |
+| -------- | -------------------------- | ------------------------------ |
+| 配置     | XML / Java Config 手动配置 | 自动配置（约定大于配置）       |
+| 依赖管理 | 手动管理版本               | Starter 统一管理               |
+| 内嵌容器 | 需要部署到 Tomcat 等       | 内嵌 Tomcat / Jetty / Undertow |
+| 起步     | 配置复杂，需要大量样板     | 快速创建独立应用               |
+
+
+---
 
 ## 可选补充
 
@@ -226,3 +278,13 @@
 > Filter VS Interceptor：
 >
 > Filter 是 Servlet 规范，Interceptor 是 Spring 的 AOP 实现
+
+**Filter VS Interceptor**：
+
+| 对比项              | Filter                       | Interceptor          |
+| ------------------- | ---------------------------- | -------------------- |
+| 规范                | Servlet 规范                 | Spring 框架          |
+| 范围                | 所有请求（包括静态资源）     | 只对 Controller 请求 |
+| 执行时机            | Servlet 前后                 | Handler 前后         |
+| 使用场景            | 字符编码、鉴权（简单）、日志 | 权限校验、日志、事务 |
+| 能否修改请求 / 响应 | ✅️（包装）                    | ❌️（只能读取）        |
