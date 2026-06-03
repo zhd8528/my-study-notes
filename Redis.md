@@ -41,11 +41,13 @@
 
 ## 3. 持久化
 
-**RDB**：快照，恢复快但可能丢数据
+**RDB**：快照，恢复快、文件小，但可能丢数据
 
-**AOF**：追加日志，数据完整但文件大
+**AOF**：追加日志，数据完整，但文件大、恢复慢
 
-> 推荐混合持久化：RDB 做全量 + AOF 做增量
+> 推荐（4.0+）：
+>
+> **混合持久化** = RDB 做全量 + AOF 做增量
 
 ---
 
@@ -59,9 +61,11 @@
 
 > 最不经常使用
 
-**allkeys-lru**
+**常用策略**：
 
-> 最常用
+- `allkeys-lru`：所有 key 中淘汰最近最少使用（最常用）
+- `allkeys-lfu`：所有 key 中淘汰最不经常使用
+- `volatile-lru`：只淘汰设置了过期时间的 key
 
 **配置淘汰策略**（redis.conf）：
 
@@ -172,6 +176,8 @@ maxmemory-policy allkeys-lru
 
 > 如果每个 key 都建定时器，CPU 负载极高
 
+---
+
 ### 5. 高可用与容灾
 
 **主从复制如何保证数据最终一致？**
@@ -195,6 +201,8 @@ maxmemory-policy allkeys-lru
 >
 > 数据分片 + 主从切换
 
+---
+
 ### 6. 分布式锁
 
 **如何用 Redis 实现分布式锁？**
@@ -216,6 +224,8 @@ maxmemory-policy allkeys-lru
 > 性能差，需要多数节点确认
 >
 > 一般业务用 Redission 的看门狗 + 单机 Redis 就够了
+
+---
 
 ### 7. 缓存与数据库一致性
 
@@ -249,6 +259,8 @@ maxmemory-policy allkeys-lru
 
 > 更新操作复杂（可能涉及多个 key）。且并发下可能覆盖旧值，删除更简单安全
 
+---
+
 ## 可选补充
 
 ### 跳表（Skip List）
@@ -259,6 +271,8 @@ maxmemory-policy allkeys-lru
 > - 范围查询高效（`ZRANGE`可直接遍历）
 > - 平均 O(log n) 复杂度
 
+---
+
 ###  Redis 事务
 
 > `MULTI` 开启 / `EXEC` 执行 / `DISCARD` 取消
@@ -267,6 +281,8 @@ maxmemory-policy allkeys-lru
 >
 > - 命令语法错误会全部失败，但执行中错误不影响其他命令
 
+---
+
 ### Pipeline
 
 > 批量发送命令，减少 RTT（Round Trip Time）
@@ -274,6 +290,8 @@ maxmemory-policy allkeys-lru
 > 注意：
 >
 > - 非原子性，不支持事务
+
+---
 
 ### BigKey 问题
 

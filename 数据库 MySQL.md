@@ -25,7 +25,7 @@
 
 **一致性**：
 
-> 事务前后数据一致
+> 事务前后数据一致，其他三个特性共同保证
 
 **隔离性**：
 
@@ -50,11 +50,13 @@
 
 ## 3. MVCC 原理
 
-> 通过隐藏列（DB_TRX_ID、DB_ROLL_PTR） + ReadView 实现
->
+> 通过隐藏列（`DB_TRX_ID`、`DB_ROLL_PTR`） + ReadView 实现
+
+**不同隔离级别的 ReadView 创建时机**：
+
 > 可重复读：
 >
-> - ReadView 在事务开始时创建
+> - ReadView 在事务开始时创建（只创建一次）
 >
 > 读已提交：
 >
@@ -66,7 +68,7 @@
 
 **聚簇索引**：
 
-> 数据和索引一起存，主键自带
+> 数据和索引一起存，主键自带，叶子节点完整行数据
 
 **二级索引**：
 
@@ -74,7 +76,7 @@
 
 **最左前缀**：
 
-> 联合索引（a，b，c）能走 a，a、b，a、b、c，不能走b、c
+> 联合索引`(a，b，c)`能走 `a`、`a.b`、`a,b.c`，不能走`b,c`
 
 ----
 
@@ -84,6 +86,9 @@
 - 违反最左前缀
 - 索引列参与运算、使用函数
 - OR 连接（除非所有条件都有索引）
+- 隐式类型转换（`varchar`列预数字比较）
+- `!=`或`<>`
+- `IS NULL` / `IS NOT NULL`（视数据分布而定）
 
 ---
 
@@ -148,7 +153,7 @@
 | low_limit_id | 下一个待分配的事务 ID （低水位）   |
 | up_limit_id  | 活跃列表中最小的事务 ID （高水位） |
 
-**可见性判断规则**（以 RR 为例）：
+**可见性判断规则**（以 RR 为例，给定`DB_TRX_ID`）：
 
 > 如果 `DB_TRX_ID < up_limit_id`：
 >
@@ -158,7 +163,7 @@
 >
 > - **不可见**（事务在未来）
 >
-> 如果 `up_limit_id <= DB_TRX_ID < low_limit_id`：
+> 如果 `up_limit_id <= DB_TRX_ID < low_limit_id`（中间值）：
 >
 > - 在 `trx_ids` 中
 >   - **不可见**（未提交）
@@ -185,6 +190,8 @@
 >
 > - 有时有效，有时失效，取决于列的可空性和数据分布
 
+---
+
 ### 4. Explain 的 Extra 字段具体含义
 
 | 字段            | 含义                                         | 严重程度 |
@@ -193,6 +200,8 @@
 | Using temporary | 用临时表（常见于 group by 无索引、distinct） | 严重     |
 | Using index     | 覆盖索引（不回表）                           | 好       |
 | Using where     | 用 where 过滤，但可能没走索引                | 需检查   |
+
+---
 
 ### 5. SQL优化实战场景
 
@@ -222,6 +231,8 @@
 >
 > 尽量改写成 EXISTS 或 JOIN，因为 MYSQL 旧版对 IN 子查询优化差
 
+---
+
 ### 6. 主从复制与读写分离
 
 **主从复制原理**：
@@ -247,6 +258,8 @@
 > - 主库等待至少一个从库确认收到 binlog 后才返回提交成功
 > - 参数 `rpl_semi_sync_master_timeout` 控制超时（超时后降级为异步）
 > - 平衡数据安全与性能
+
+---
 
 ### 7. 分库分表基础
 
@@ -277,6 +290,8 @@
 | 10 bit | 机器 ID（最多 1024 节点）    |
 | 12 bit | 序列号（每毫秒 4096 个 ID）  |
 
+---
+
 ## 可选补充
 
 ### 1. 聚簇索引与非聚簇索引的物理存储差异
@@ -285,9 +300,13 @@
 >
 > 非聚簇索引叶子节点存主键值
 
+---
+
 ### 2. 自适应哈希索引
 
 > InnoDB 自动建立，加速热点索引页的等值查询
+
+---
 
 ### 3. Online DDL
 
@@ -303,6 +322,8 @@ ALTER TABLE t ADD COLUMN c INT, ALGORITHM=INPLACE, LOCK=NONE;
 ALTER TABLE t MODIFY COLUMN c VARCHAR(100), ALGORITHM=COPY, LOCK=SHARED;
 ```
 
+---
+
 ### 4. InnoDB VS MyISAM 对比
 
 | 特性     | InnoDB        | MyISAM    |
@@ -313,6 +334,8 @@ ALTER TABLE t MODIFY COLUMN c VARCHAR(100), ALGORITHM=COPY, LOCK=SHARED;
 | 聚簇索引 | ✅️             | ❌️         |
 | 全文索引 | ✅️（5.6 +）    | ✅️         |
 | 崩溃恢复 | ✅️（redo log） | ❌️         |
+
+---
 
 ### 5. Redo Log VS Binlog
 

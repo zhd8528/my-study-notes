@@ -16,53 +16,64 @@
 - Bean 生命周期
 - @Autowired 和 @Resource 区别、@Component 和 @Bean 区别
 
-## 1. IOC
+---
 
-**控制反转**：
+## 1. IOC（控制反转）
+
+**定义**：
 
 > 将对象的创建、组装、管理权交给 Spring 容器，由容器控制对象的生命周期，而不是由代码主动 new，从而降低耦合
 
 **DI 依赖注入**：
 
-> @Autowired 自动装配
+> @Autowired 自动装配，是 IOC 的实现方式
 
 ---
 
-## 2. AOP
+## 2. AOP（面向切面）
 
-- 面向切面编程，底层动态代理（JDK 代理接口/CGLIB 代理类）
-- 应用
-  - 日志、事务、权限
+- 面向切面编程
+- 底层
+  - 动态代理
+    - JDK 动态代理接口
+    - CGLIB 生成子类（继承）
+
+- 应用场景
+  - 日志、事务、权限控制
 
 ---
 
 ## 3. Bean 生命周期
 
 1. 实例化
-2. 属性填充
-3. Aware 接口
-4. BeanPostProcessor 前置
-5. InitializingBean
-6. init-method
-7. BeanPostProcessor 后置
+2. 属性填充（依赖注入）
+3. Aware 接口回调（`BeanNameAware`、`BeanFactoryAware`、`ApplicationContextAware`）
+4. `BeanPostProcessor`前置处理
+5. `InitializingBean`（`afterPropertiesSet()`）
+6. `init-method`（`@PostConstruct`）
+7. `BeanPostProcessor`后置处理
 8. 使用
-9. 销毁
+9. 销毁（`DisposableBean`、`@PreDestroy`）
 
 **简化记忆**：
 
 1. **实例化（new 对象）**
 2. **属性填充（依赖注入）**
 3. **初始化（Aware -> BeanPostProcessor 前置 -> init -> BeanPostProcessor 后置）**
-4. **销毁**
+4. **使用**
+5. **销毁**
 
 ---
 
-## 4. Spring 事务失效场景
+## 4. Spring 事务失效场景（6条）
 
-1. 非 public 方法
-2. 自调用（同类方法无代理）
-3. 异常被 try-catch 吞掉
-4. 传播行为配置错误
+1. **非`public`方法**：Spring 事务默认只对 `public`生效
+2. **自调用（同类方法无代理）**：通过`this`调用不走代理 -> 用`AopContext.currentProcy()`或注入自己
+3. **异常被`try-catch`吞掉**：事务只对抛出的异常回滚
+4. **传播行为配置错误**：如用错事务管理器
+5. **`rollbackFor`未配置**：默认只对`RuntimeException`和`Error`回滚，检查型异常需指定`rollbackFor = Exception.class`
+   1. **数据库引擎不支持事务**（如 MyISAM）
+
 
 ---
 
@@ -88,7 +99,7 @@
 
 ## 6. Spring Boot 自动配置原理
 
-- @Spring BootApplication 组合了 @EnableAutoConfiguration
+- **入口**：@Spring BootApplication 组合了 @EnableAutoConfiguration
 - 从 META-INF/spring.factories 加载自动配置类
 - 按 @Conditional 条件注解决定是否失效
 
@@ -118,7 +129,7 @@
 >
 > 通过提前暴露半成品对象（ObjectFactory）解决
 >
-> 注意：仅支持单列模式，构造器注入无法解决
+> ❗️ 注意：仅支持**单列模式**，构造器注入无法解决
 
 **三级缓存解决循环依赖**：
 
@@ -227,21 +238,21 @@
 
 ### 6. Spring Boot 自动配置原理补充
 
-**❗️版本变化**：
+**❗️版本变化**（加载路径）：
 
 - **Spring Boot 2.7 之前**：`META-INF/spring.factories`
 
 - **Spring Boot 2.7 +**：`META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
 
-**补充**：
+**条件注解**：
 
-> 条件注解：
->
-> @ConditionalOnClass、@ConditionalOnMissingBean 等，控制配置类是否生效
->
-> 自动配置如何覆盖：
->
-> 用户自定义的 Bean 会覆盖自动配置中的默认 Bean
+@ConditionalOnClass、@ConditionalOnMissingBean 等，控制配置类是否生效
+
+**自动配置如何覆盖（覆盖方式）**：
+
+用户自定义的 Bean 会覆盖自动配置中的默认 Bean
+
+---
 
 ### 7. 补充Spring Boot 和 Spring 的 关系
 
@@ -263,13 +274,19 @@
 
 > 解决多 Bean 注入冲突
 
+---
+
 ### 2. @Lazy
 
 > 延迟初始化 Bean、解决循环依赖或加速启动
 
+---
+
 ### 3. @Scope
 
 > 单例、原型、请求、会话等作用域
+
+---
 
 ### 4. Spring 事件机制
 
