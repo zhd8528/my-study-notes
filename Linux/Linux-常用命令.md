@@ -20,7 +20,7 @@ ls -r
 # 这些参数也可以组合在一起使用
 ```
 
-![image-20260612193758104](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612193758104.png)
+![image-20260612193758104](image-20260612193758104.png)
 
 ## ln（link）创建链接文件
 
@@ -36,7 +36,7 @@ ln -s
 # 不加参数默认是硬链接，硬链接本质上是一个指向文件系统中另一个文件的指针，它与原始文件共享相同的 i 节点
 ```
 
-![image-20260612195531997](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612195531997.png)
+![image-20260612195531997](image-20260612195531997.png)
 
 ## inode（index node）
 
@@ -55,11 +55,11 @@ ln -s
 # 源文件和硬链接实际上是文件系统中，同一个文件的两个不同的名字
 ```
 
-![image-20260612200330479](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612200330479.png)
+![image-20260612200330479](image-20260612200330479.png)
 
-![image-20260612200528237](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612200528237.png)
+![image-20260612200528237](image-20260612200528237.png)
 
-![image-20260612200655469](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612200655469.png)
+![image-20260612200655469](image-20260612200655469.png)
 
 ```b
 echo "Hello Linux" > file2.txt
@@ -97,9 +97,9 @@ chmod +x hello1.txt
 # 还可以在加号或减号前面加上u、g或o来单独给文件的所有者、同组或者其他用户来添加或删除权限，也可以组合在一起使用
 ```
 
-![image-20260612202640727](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612202640727.png)
+![image-20260612202640727](image-20260612202640727.png)
 
-![image-20260612202836261](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612202836261.png)
+![image-20260612202836261](image-20260612202836261.png)
 
 ## 使用数字来表示权限
 
@@ -107,7 +107,7 @@ chmod +x hello1.txt
 - w：2
 - x：1
 
-![image-20260612203548027](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612203548027.png)
+![image-20260612203548027](image-20260612203548027.png)
 
 ## touch 命令创建文件
 
@@ -119,7 +119,7 @@ echo "文件内容" > hello.txt
 # echo 是一个用来输出文本的命令,可以使用重定向符号 > 把文本内容保存的文件中，当文件不存在会自动创建一个新的文件
 ```
 
-![image-20260612203939221](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612203939221.png)
+![image-20260612203939221](image-20260612203939221.png)
 
 ## pwd（print working directory）& cd（change directory）
 
@@ -139,7 +139,7 @@ cd ~
 # - 表示上一次所在的目录
 ```
 
-![image-20260612205227149](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612205227149.png)
+![image-20260612205227149](image-20260612205227149.png)
 
 ## 根目录下一些常见目录以及它们的作用
 
@@ -149,7 +149,7 @@ cd ~
 # home 目录一般是用户的家目录，当进入系统之后默认的目录
 ```
 
-![image-20260612205936364](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612205936364.png)
+![image-20260612205936364](image-20260612205936364.png)
 
 - /：根目录，所有文件和目录的起点
 - /bin：用户二进制文件
@@ -184,7 +184,7 @@ mkdir 要创建的目录名
 # -p 创建多级目录
 ```
 
-![image-20260612210731605](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612210731605.png)
+![image-20260612210731605](image-20260612210731605.png)
 
 ## du（disk usage）查看文件大小
 
@@ -194,7 +194,7 @@ mkdir 要创建的目录名
 # 左边的数字表示的是文件或者目录的大小
 ```
 
-![image-20260612211224260](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612211224260.png)
+![image-20260612211224260](image-20260612211224260.png)
 
 ## 专门用来显示目录结构的 tree 命令
 
@@ -202,7 +202,7 @@ mkdir 要创建的目录名
 # tree 命令可以以树状图的形式显示目录的结构（需要额外安装：sudo apt install tree）
 ```
 
-![image-20260612211512132](C:\Users\Administrator\Desktop\my-study-notes\Linux\image-20260612211512132.png)
+![image-20260612211512132](image-20260612211512132.png)
 
 ## rmdir（remove directory）删除目录
 
